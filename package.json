@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/stressGC/Brice/issues"
   },
-  "homepage": "https://github.com/stressGC/Brice#readme"
+  "homepage": "https://github.com/stressGC/Brice#readme",
+  "dependencies": {
+    "dotenv": "^8.0.0"
+  }
 }
