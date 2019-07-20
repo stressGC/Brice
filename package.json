@@ -1,0 +1,24 @@
+{
+  "name": "brice",
+  "version": "0.0.1",
+  "description": "surf forecast chatbot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stressGC/Brice.git"
+  },
+  "keywords": [
+    "surf",
+    "forecast",
+    "chatbot"
+  ],
+  "author": "Georges Cosson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stressGC/Brice/issues"
+  },
+  "homepage": "https://github.com/stressGC/Brice#readme"
+}
