@@ -27,22 +27,30 @@ const scrapeSurfAreas = (spotListSelector) => {
   return surfAreas;
 };
 
-/* constants */
-const MSW_FRANCE_SURFSPOTS_URL= 'https://magicseaweed.com/France-Surf-Forecast/2/';
-const MSW_AREA_LIST_SELECTOR = '.region-surf-areas section.list-group';
-const MSW_SPOTS_LIST_SELECTOR = '.msw-js-spot-list';
-
 const scrapeArea = async ({ url }, browser) => {
   const areaPage = await browser.newPage();
   await areaPage.goto(url);
   // await areaPage.screenshot({ path: `/areas/${name}.png` });
-  const spotsInArea = await areaPage.evaluate((selector) => {
+  const rawSpotsInArea = await areaPage.evaluate((selector) => {
     const spotListCollection = document.querySelector(selector).getAttribute('data-collection');
     return JSON.parse(spotListCollection);
   }, MSW_SPOTS_LIST_SELECTOR);
   await areaPage.close();
+  const spotsInArea = rawSpotsInArea.map((spot) => {
+    const { _id, currentForecast, country, ...alreadyFormatedProperties } = spot;
+    return {
+      id: spot._id,
+      country: spot.country.iso,
+      ...alreadyFormatedProperties,
+    }
+  });
   return spotsInArea;
 };
+
+/* constants */
+const MSW_FRANCE_SURFSPOTS_URL= 'https://magicseaweed.com/France-Surf-Forecast/2/';
+const MSW_AREA_LIST_SELECTOR = '.region-surf-areas section.list-group';
+const MSW_SPOTS_LIST_SELECTOR = '.msw-js-spot-list';
   
 const main = async () => {
   const browser = await puppeteer.launch({
