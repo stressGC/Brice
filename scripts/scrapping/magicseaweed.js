@@ -60,22 +60,26 @@ const main = async () => {
   const page = await browser.newPage();
   await page.goto(MSW_FRANCE_SURFSPOTS_URL);
   await page.screenshot({ path: 'mainpage.png' });
+  try {
+    const surfAreas = await page.evaluate(scrapeSurfAreas, MSW_AREA_LIST_SELECTOR);
 
-  const surfAreas = await page.evaluate(scrapeSurfAreas, MSW_AREA_LIST_SELECTOR);
-
-  const surfSpots = await Promise.all(surfAreas.map(async area => {
-    const spotsInArea = await scrapeArea(area, browser);
-    return {
-      ...area,
-      spots: spotsInArea,
-    };
-  }));
-
-  await buster.setResultObject({ 
-    areas: surfSpots,
-  });  
-  await browser.close();
-  process.exit(0);
+    const surfSpots = await Promise.all(surfAreas.map(async area => {
+      const spotsInArea = await scrapeArea(area, browser);
+      return {
+        ...area,
+        spots: spotsInArea,
+      };
+    }));
+  
+    await buster.setResultObject({ 
+      areas: surfSpots,
+    });  
+    await browser.close();
+    process.exit(0);
+  } catch (e) {
+    console.log(e);
+    process.exit(1);
+  }
 };
 
 main();
