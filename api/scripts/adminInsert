@@ -1,0 +1,11 @@
+use cossongeorges
+db.users.insert({
+  name: "testuser",
+  email: 'test@cossongeorges.com', 
+  password: '$2a$08$U5b5j.QwoT7e6j5Qi2JfjulpRixGnClfAGea1i5YpaqaDd4kyJXSm',
+  createdAt: 99999
+})
+cursor = db.users.find({});
+while ( cursor.hasNext() ) {
+   printjson( cursor.next() );
+}
