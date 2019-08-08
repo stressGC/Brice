@@ -1,0 +1,83 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:9.4
+      - image: mongo:3.6.2
+    environment:
+      NODE_ENV: test
+      MONGO_HOST: localhost
+      MONGO_PORT: 27017
+      MONGO_DB: cossongeorges
+      USERS_DB: users
+      SSH_HOST: cossongeorges.com
+      SSH_USER: georges
+      JWT_SECRET_KEY: h0ECSzull5IJ
+      TEST_USER: test@cossongeorges.com
+      TEST_USER_PASSWORD: PjHRuNyMkzMGv6qe
+      USER_INSERTION_SCRIPT: scripts/adminInsert
+    steps:
+      - checkout
+      - run:
+          name: Update npm
+          command: 'sudo npm install -g npm@5 mocha'
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: Install npm-packages
+          command: npm install
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      - run: 
+          name: Purging apt
+          command: |
+            sudo rm /etc/apt/sources.list
+            echo "deb http://archive.debian.org/debian/ jessie-backports main" | sudo tee -a /etc/apt/sources.list
+            echo "deb-src http://archive.debian.org/debian/ jessie-backports main" | sudo tee -a /etc/apt/sources.list
+            echo "Acquire::Check-Valid-Until false;" | sudo tee -a /etc/apt/apt.conf.d/10-nocheckvalid
+            echo 'Package: *\nPin: origin "archive.debian.org"\nPin-Priority: 500' | sudo tee -a /etc/apt/preferences.d/10-archive-pin
+            sudo apt-get update
+      - run:
+          name: Mongo Installation
+          command: |
+            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+            echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
+            sudo apt-get update
+            sudo apt-get install -y --force-yes mongodb-org-shell
+            mongo --version
+      - run: 
+          name: Admin User Insertion
+          command: |
+            mongo $MONGO_HOST:$MONGO_PORT/$MONGO_DB < $USER_INSERTION_SCRIPT
+      - run:
+          name: Test
+          command: npm test
+  deploy:    
+    environment:
+      SSH_HOST: cossongeorges.com
+      SSH_USER: georges
+      DEPLOY_FOLDER_PATH: /home/georges/www/api
+    machine:
+      enabled: true
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "25:7a:5d:19:23:d2:a3:89:79:3b:06:a1:18:b3:db:bd"
+      - run:
+          name: Deploy 
+          command: |
+            ssh $SSH_USER@$SSH_HOST "source /etc/profile; cd $DEPLOY_FOLDER_PATH; npm run deploy"
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build   
+          filters: 
+            branches:
+              only: master
